@@ -1,0 +1,389 @@
+<html>
+<head>
+    <title>The LikeableWeb Enterprise API - Coding Guide</title>
+</head>
+<style>
+	td ul 
+	{
+		list-style-type: none;
+		padding: 1px;
+		margin: 1px;
+		font-weight: bold;
+	}
+
+</style>
+<body> 
+    <h1>
+        The LikeableWeb Enterprise API</h1>
+    <h2>
+        Contents</h2>
+    <b>
+        <br />
+        <a href="LikeableWebAPIEnterpriseGuideLines.html#1">1. Key Concepts</a>
+        <br />
+        <a href="LikeableWebAPIEnterpriseGuideLines.html#2">2. Application Client and Secret</a>
+        <br />
+        <a href="LikeableWebAPIEnterpriseGuideLines.html#3">3. Lets Get Started!</a>
+        <br />
+        <a href="LikeableWebAPIEnterpriseGuideLines.html#4">4. The News Feed Data</a>
+        <br />
+		<a href="LikeableWebAPIEnterpriseGuideLines.html#r1">Ref 1. News Feed Object</a>
+        <br />
+		<a href="LikeableWebAPIEnterpriseGuideLines.html#r2">Ref 2. News Feed Photo Object</a>
+        <br />
+		<a href="LikeableWebAPIEnterpriseGuideLines.html#r3">Ref 3. News Feed Video Object</a>
+        <br />
+	</b>
+    <p />
+    <h3 id="1">
+        1. Key Concepts</h3>
+    <p />
+    <p>
+        The LikeableWeb API using the (REST) protocol.
+        The goal of the API is to provide a very simple way for webbased clients to connecting to the LikeableWeb
+		Enterprise API.
+	</p>
+	 <h3 id="2">
+        2. Application Client and Secret</h3>
+    <p />
+    <p>
+        The Application Client Identification and the Application Client Secret are used when authenticate against the LikeableWeb API and for the system to know which application the call is related to. Through the application that is linked to application-client a number of specified social media streams with its various news feeds can then be retreived through the API.
+		<br/><br/>
+		Note:
+		
+		An application thus contains a list of different social media streams. The application is tied to the account and an account can have multiple applications.
+		
+		Each application can have one or more clients that are used to connect to the application. Example of a client is a website that consume the LikeableWeb API and displays the news on the site.
+	</p>
+	<h3 id="3">
+        3. Lets Get Started!</h3>
+    <p>
+        The easiest way to retrieve data from the LikeableWeb API is to create a instance of a rest-client 
+		and then specifying the root path to the api service. 
+		
+		Then using the basic authentication by enter the Application Client Id as UserName and the Application Client
+		Secret as the the Password. These data are obtained when setting up the Enterprise-account
+		and the application.
+	</p>
+    <pre>
+	// ...using a .NET rest client
+
+	var client = new JsonServiceClient("http://devapi.likeableweb.com/");
+	client.UserName = "You app client id";
+	client.Password = "Your app client secret";
+    </pre>
+    <p>
+        Once the client instance has been created, the next thing to do is making the news feed request
+		by sending an empty or 0-definied time-pointer to the service (StartTick).
+	</p>
+    <pre>
+	var response = client.Send<NewsFeedResponse>(new NewsFeedRequest() { StartTick = 0 });
+    </pre>
+	<p>
+        Since the service address changes in the various social media platforms, and that it is not allowed to retrieve all records via a single call, a time pointer must be included in the request from which data is to be retrieved.
+		
+		This is not something that you as a user need to track apart, since the service will answer from the API-call with the next ”time-pointer” or the StartTick. The value of this is not something that needs to be analyzed but have to be stored and handled by the client for the next API-call. If this value is not changed for the previous call, it means that the time pointer still remains on the same end date.  
+		
+		The time pointer is a date that is handled internally by LikableWeb and used to filter out the records when the posts last been updated.
+	</p>
+	<h3 id="4">
+        4. The News Feed Data</h3>
+    <p />
+    <p>
+        Data obtained from the LikeableWeb-Newsfeed Request is aggregated from the various social media platforms and contains a list of news feed objects. The News object is described last in this document in the reference list, see <a href="LikeableWebAPIEnterpriseGuideLines.html#r1">The News Feed Object</a>.
+		Each object represents a news post on social media and may have one or more associated media objects for photography and video.
+		
+		For example, from Instagram the generated image will result in three different size-formats resulting in three different 
+		photo-objects attached to the news feed object. On the main object, a specified property, "AttachedMediaType" indicating which objects are linked.
+		</p>
+    <pre>
+	NewsFeed
+		|-NewsFeedPhotos 
+		|-NewsFeedVideos
+	</pre>
+    <p>
+	The example below shows just how to iterate through the list of news objects and prints them in the application.
+	</p>
+	<pre>
+	foreach (var newsFeed in response.NewsFeeds)
+	{
+		Console.WriteLine("----------------");
+		Console.WriteLine("LikeableWebFeedId: " + newsFeed.LikeableWebFeedId);
+		Console.WriteLine("PostId: " + newsFeed.PostId);
+
+		Console.WriteLine("Caption: " + newsFeed.Caption);
+		Console.WriteLine("Text: " + newsFeed.Text);
+		Console.WriteLine("Tags: " + newsFeed.Tags);
+	}
+	</pre>
+	<h3 id="r1">
+        Ref 1. News Feed Object</h3>
+    <p>
+		The news feed object is the main object when subscribing to news feed data from the LikeableWeb service and the API.
+        
+	</p>
+	<p>
+		<table border="1">
+			<tr>
+				<th>Property Name</th>
+				<th>Datatype</th>
+				<th>Description</th>
+				<th>Example</th>
+			</tr>
+			<tr>
+				<td>LikeableWebFeedId</td>
+				<td>string</td>
+				<td>Unique ID for the feed that is generated by the LikeableWeb service</td>
+				<td>ACCOUNT_APPLICATION_INS0001_INF0000001</td>
+			</tr>
+			<tr>
+				<td>PostId</td>
+				<td>string</td>
+				<td>Unique ID for the feed that is generated by the social media. Recommend to use this as the unique key or in combination
+				with the sourcesystem when storing the feed in the database/cms.</td>
+				<td>671712940335197508_123456789</td>
+			</tr>
+			<tr>
+				<td>Source</td>
+				<td>string</td>
+				<td>Source name from LikeableWeb specifying the subscribtion channel. This is a free text created by the user when creating
+				the likeable source channel.</td>
+				<td>Instagram Example Stream</td>
+			</tr>
+			<tr>
+				<td>SourceSystem</td>
+				<td>integer</td>
+				<td>
+					Integer specifying the source social media type: 
+					<ul>
+						<li>0 = Facebook</li>
+						<li>1 = Instagram</li>
+						<li>2 = YouTube</li>
+					</ul>
+				</td>
+				<td>0 (Facebook)</td>
+			</tr>
+			<tr>
+				<td>SourceUrl</td>
+				<td>string</td>
+				<td>Url to the source/user on the social media. In the example, this is the url to the Facebook-page</td>
+				<td>https://www.facebook.com/pages/Likeableweb/548999021853892</td>
+			</tr>
+			<tr>
+				<td>Caption</td>
+				<td>string</td>
+				<td>This is a raw text obtained from the post on the social media including both hashtags and texts if both are used</td>
+				<td>This is a text from a post on a social media. #socialmedia #likeableweb #example</td>
+			</tr>
+			</tr>
+				<td>Text</td>
+				<td>string</td>
+				<td>Only text obtained from the post on the social media/parsed by LikeableWeb if neccessary</td>
+				<td>This is a text from a post on a social media</td>
+			</tr>
+			<tr>
+				<td>Tags</td>
+				<td>string</td>
+				<td>Only hashtags obtained from the post on the social media/parsed by LikeableWeb if neccessary. Separated by whitespace and
+				starting with the hashtag-character</td>
+				<td>#socialmedia #likeableweb #example</td>
+			</tr>
+			<tr>
+				<td>UserId</td>
+				<td>string</td>
+				<td>Unique user identification on the social media. This is the secret unique user id for the user</td>
+				<td>123456789</td>
+			</tr>
+			<tr>
+				<td>UserName</td>
+				<td>string</td>
+				<td>The user name for the user and might be changed in the social media</td>
+				<td>myusername</td>
+			</tr>
+			<tr>
+				<td>UserPresentationName</td>
+				<td>string</td>
+				<td>The presentation name on the social media. This name is normally presented</td>
+				<td>LikeableWebUser</td>
+			</tr>
+			<tr>
+				<td>HrefTitle</td>
+				<td>string</td>
+				<td>The url title to the post if defined</td>
+				<td>The link title</td>
+			</tr>
+			<tr>
+				<td>Href</td>
+				<td>string</td>
+				<td>Url to the post on the social media</td>
+				<td>http://instagram.com/p/abcde_ab1C/ or http://www.youtube.com/embed/YDZbabcdefg</td>
+			</tr>
+			<tr>
+				<td>HrefDescription</td>
+				<td>string</td>
+				<td>The link description if definied</td>
+				<td>This is a link description</td>
+			</tr>
+			<tr>
+				<td>Likes</td>
+				<td>integer</td>
+				<td>Number of likes on the social media</td>
+				<td>4</td>
+			</tr>
+			<tr>
+				<td>Dislikes</td>
+				<td>integer</td>
+				<td>Number of dislikes on the social media. Used only by YouTube at this stage</td>
+				<td>1</td>
+			</tr>
+			<tr>
+				<td>ViewCount</td>
+				<td>integer</td>
+				<td>Number of view counts on the social media. Used only by YouTube at this stage</td>
+				<td>20</td>
+			</tr>
+			<tr>
+				<td>LocationName</td>
+				<td>string</td>
+				<td>LocationName obtained from the social media if the feed is posted using the location</td>
+				<td>Helsingborg</td>
+			</tr>
+			<tr>
+				<td>Latitude</td>
+				<td>decimal</td>
+				<td>The latitude postion if location is used</td>
+				<td>56.04404712</td>
+			</tr>
+			<tr>
+				<td>Longitude</td>
+				<td>decimal</td>
+				<td>The longitude postion if location is used</td>
+				<td>12.69698123</td>
+			</tr>
+			<tr>
+				<td>AttachedMediaType</td>
+				<td>integer</td>
+				<td>
+					Flags indicating media attached. (bitwise)
+					<ul>
+						<li>0 = No Media</li>
+						<li>2 = Photo</li>
+						<li>4 = Video</li> 
+					</ul>	
+					Flag equals 6 = Both photo and video (2 + 4) will be attached.
+				</td>
+				<td>2 (Photo)</td>
+			</tr>
+			<tr>
+				<td>StatusType</td>
+				<td>integer</td>
+				<td>
+					The Status from LikeableWeb
+					<ul>
+						<li>0 = PublishedBySystem</li>
+						<li>1 = PublishedByUser</li>
+						<li>10 = WaitingForUser</li>
+						<li>20 = DeletedByUser</li>
+						<li>21 = DeletedBysystem</li>
+					</ul>
+					WaitingForUser is the status type when the system is waiting for the user interaction. The action will result either in PublishedByUser or DeletedByUser
+				</td>
+				<td>
+					1 (PublishedByUser)
+				</td>
+			</tr>
+			<tr>
+				<td>Created</td>
+				<td>datetime</td>
+				<td>Created date from the social media (in Swedish time, +0200 UTC). We recommend to use this date to sort and
+				insert the feed at the right place in the data storage. </td>
+				<td>Tue, 7 April 2015 08:02:45 GMT</td>
+			</tr>
+			<tr>
+				<td>Updated</td>
+				<td>datetime</td>
+				<td>Updated date from the social media (in Swedish time, +0200 UTC). This date is changed all the time when the feed is updated on social media</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>ServiceUpdated</td>
+				<td>datetime</td>
+				<td>Service Updated is created and updated by the LikeableWeb service when the post is updated by the hub. This date is then
+used to inform the clients when new post should be fetched. When a news feed item is updated by the service, the last time-pointer/starttick
+of a feed, will be moved one millisecond after the date when the post is updated.
+
+ 				(in Swedish time, +0200 UTC)</td>
+				<td>Mon, 27 April 2015 16:31:04 GMT</td>
+			</tr>
+		</table>
+	</p>
+    <h3 id="r2">
+        Ref 2. News Feed Photo Object</h3>
+    <p>
+		The news feed photo object is linked to the main news feed object and contains information about the photo such as
+		the url, alt-text, size (width and height in pixels) and the index to separate two images from each other since the list may contains the same photo but in different sizes, this will result in one-to-many photo objects.       
+	</p>
+	<p>
+		<table border="1">
+			<tr>
+				<th>Property Name</th>
+				<th>Datatype</th>
+				<th>Description</th>
+				<th>Example</th>
+			</tr>
+			<tr>
+				<td>LinkUrl</td>
+				<td>string</td>
+				<td>Url to the photo at the social media</td>
+				<td>http://photos-h.ak.fbcdn.net/hphotos-ak-prn1/t1/150984_334936916620741_123456789_s.jpg</td>
+			</tr>
+			<tr>
+				<td>Alt</td>
+				<td>string</td>
+				<td>Alt/text if applied to the photo</td>
+				<td>A nice photo</td>
+			</tr>
+			<tr>
+				<td>Width</td>
+				<td>integer</td>
+				<td>Width of the photo in pixels</td>
+				<td>130</td>
+			</tr>
+			<tr>
+				<td>Height</td>
+				<td>integer</td>
+				<td>Height of the photo in pixels</td>
+				<td>99</td>
+			</tr>
+			<tr>
+				<td>PhotoIndex</td>
+				<td>integer</td>
+				<td>Index of the photo. The first photo will have index of 1. Next photo 2 etc. This is used to identify the photo-object belonging to the same photo as it may appear multiple objects in different sizes</td>
+				<td>1</td>
+			</tr>
+		</table>
+	</p>
+	<h3 id="r3">
+        Ref 3. News Feed Video Object</h3>
+    <p>
+		The news feed video object is linked to the main news feed object, and contains only the url to the video post.
+        
+	</p>
+	<p>
+		<table border="1">
+			<tr>
+				<th>Property Name</th>
+				<th>Datatype</th>
+				<th>Description</th>
+				<th>Example</th>
+			</tr>
+			<tr>
+				<td>LinkUrl</td>
+				<td>string</td>
+				<td>Url to the video at the social media</td>
+				<td>http://www.youtube.com/embed/1234567-sts</td>
+			</tr>
+		</table>
+	</p>
+</body>
+</html>
