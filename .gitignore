@@ -1,2 +1,4 @@
 /src/examples/dotnet/*.user
 /src/examples/dotnet/*.suo
+/src/examples/dotnet/LikeableWeb.Example.Test/bin
+/src/examples/dotnet/LikeableWeb.Example.Test/obj
