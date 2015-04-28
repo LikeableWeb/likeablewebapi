@@ -39,9 +39,12 @@
         1. Key Concepts</h3>
     <p />
     <p>
-        The LikeableWeb API using the (REST) protocol.
+        LikeableWeb API is using the (REST) protocol.
         The goal of the API is to provide a very simple way for webbased clients to connecting to the LikeableWeb
-		Enterprise API.
+		Enterprise API for exchanging data against different social medias.
+		LikeableWeb aggregates information from various social media so that you as a developer only needs to consume data from one API.
+		LikeableWeb also handles changes from the various social media.
+		We have focused on the social media is the greatest and most important for the companies. Of course, there are many and we are open to add them afterwards as there is a need.
 	</p>
 	 <h3 id="2">
         2. Application Client and Secret</h3>
@@ -68,9 +71,9 @@
     <pre>
 	// ...using a .NET rest client
 
-	var client = new JsonServiceClient("http://devapi.likeableweb.com/");
-	client.UserName = "You app client id";
-	client.Password = "Your app client secret";
+	var client = new JsonServiceClient("http://demoapi.likeableweb.com/");
+	client.UserName = "You app client id";	//For testing: DemoAppClient
+	client.Password = "Your app client secret";  //For testing: demo15
     </pre>
     <p>
         Once the client instance has been created, the next thing to do is making the news feed request
